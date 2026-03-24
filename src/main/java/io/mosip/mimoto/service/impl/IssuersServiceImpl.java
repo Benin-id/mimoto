@@ -88,7 +88,7 @@ public class IssuersServiceImpl implements IssuersService {
 
     @Override
     public CredentialIssuerConfiguration getIssuerConfiguration(String issuerId) throws ApiNotAccessibleException, IOException, AuthorizationServerWellknownResponseException, InvalidWellknownResponseException {
-        CredentialIssuerWellKnownResponse credentialIssuerWellKnownResponse = issuersConfigUtil.getIssuerWellknown(getIssuerDetails(issuerId).getCredential_issuer_host());
+        CredentialIssuerWellKnownResponse credentialIssuerWellKnownResponse = issuersConfigUtil.getIssuerWellknown(getIssuerDetails(issuerId).getCredential_issuer_host_external());
         AuthorizationServerWellKnownResponse authorizationServerWellKnownResponse = issuersConfigUtil.getAuthServerWellknown(credentialIssuerWellKnownResponse.getAuthorizationServers().get(0));
 
         return new CredentialIssuerConfiguration(
@@ -105,7 +105,7 @@ public class IssuersServiceImpl implements IssuersService {
         log.info("Fetching issuer config for issuerId: {}", issuerId);
         try {
             IssuerDTO issuerDTO = getIssuerDetails(issuerId);
-            CredentialIssuerWellKnownResponse wellKnownResponse = issuersConfigUtil.getIssuerWellknown(issuerDTO.getCredential_issuer_host());
+            CredentialIssuerWellKnownResponse wellKnownResponse = issuersConfigUtil.getIssuerWellknown(issuerDTO.getCredential_issuer_host_external());
             return new IssuerConfig(
                     issuerDTO,
                     wellKnownResponse,

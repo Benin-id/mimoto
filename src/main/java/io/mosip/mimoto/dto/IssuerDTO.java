@@ -61,4 +61,6 @@ public class IssuerDTO {
     @NotBlank
     @Schema(description = "Credential Issuer Host")
     String credential_issuer_host;
+    @Schema(description = "Credential Issuer Host external")
+    String credential_issuer_host_external;
 }
