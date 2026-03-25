@@ -1,4 +1,4 @@
-name: Maven mimoto service
+name: Maven Package upon a push
 
 on:
   release:
@@ -16,7 +16,7 @@ on:
     branches:
       - '!release-branch'
       - benin-0.19.2-aws
-      - master
+      - release
 
 jobs:
   build-mimoto:
@@ -29,7 +29,85 @@ jobs:
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
       OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_INJI_TEAM }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   ## Recreate zips to provide support for docker unzip operation
+  recreate-zips:
+    needs: build-mimoto
+    runs-on: ubuntu-latest
+    env:
+      BUILD_ARTIFACT: mimoto
+      NEW_BUILD_ARTIFACT: mimoto-recreated
+      SERVICE_LOCATION: mimoto
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        if: ${{ ( env.BUILD_ARTIFACT != 'false' ) }}
+        with:
+          name: ${{ env.BUILD_ARTIFACT }}
+          path: ../
+      - name: recreate zip
+        run: |
+          cd ../
+          
+          echo "LS ./"
+          ls .
+          echo "unzip command"
+          unzip -uj "${{ env.BUILD_ARTIFACT }}.zip" "target/*" -d "${{ env.SERVICE_LOCATION }}/target/"
+          
+          echo "find command"
+          cd ${{ env.SERVICE_LOCATION }}
+          find ../${{ env.SERVICE_LOCATION }} -path '*/target/*' -name '*.jar'  -type f  -executable -exec zip ${{ env.NEW_BUILD_ARTIFACT }}.zip {} +
 
+      - name: Upload the springboot jars
+        if: ${{ !contains(github.ref, 'master') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NEW_BUILD_ARTIFACT }}
+          path: ${{ env.NEW_BUILD_ARTIFACT }}.zip
+
+  build-dockers:
+    needs: recreate-zips
+    strategy:
+      matrix:
+        include:
+          - SERVICE_LOCATION: '../mimoto'
+            SERVICE_NAME: 'mimoto'
+            BUILD_ARTIFACT: 'mimoto-recreated'
+            SQUASH_LAYERS: '8'
+      fail-fast: false
+    uses: mosip/kattu/.github/workflows/docker-build.yml@master-java21
+    name: ${{ matrix.SERVICE_NAME }}
+    with:
+      SERVICE_LOCATION: ${{ matrix.SERVICE_LOCATION }}
+      SERVICE_NAME: ${{ matrix.SERVICE_NAME }}
+      BUILD_ARTIFACT: ${{ matrix.BUILD_ARTIFACT }}
+      SQUASH_LAYERS: ${{ matrix.SQUASH_LAYERS }}
+    secrets:
+      DEV_NAMESPACE_DOCKER_HUB: ${{ secrets.DEV_NAMESPACE_DOCKER_HUB }}
+      ACTOR_DOCKER_HUB: ${{ secrets.ACTOR_DOCKER_HUB }}
+      RELEASE_DOCKER_HUB: ${{ secrets.RELEASE_DOCKER_HUB }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK}}
+
+  build-dockers_apitest_mimoto:
+    needs: build-apitest-mimoto-local
+    strategy:
+      matrix:
+        include:
+          - SERVICE_LOCATION: 'api-test'
+            SERVICE_NAME: 'apitest-mimoto'
+            BUILD_ARTIFACT: 'apitest-mimoto-local'
+            ONLY_DOCKER: true
+      fail-fast: false
+    name: ${{ matrix.SERVICE_NAME }}
+    uses: mosip/kattu/.github/workflows/docker-build.yml@master-java21
+    with:
+      SERVICE_LOCATION: ${{ matrix.SERVICE_LOCATION }}
+      SERVICE_NAME: ${{ matrix.SERVICE_NAME }}
+      BUILD_ARTIFACT: ${{ matrix.BUILD_ARTIFACT }}
+      ONLY_DOCKER: ${{ matrix.ONLY_DOCKER }}
+    secrets:
+      DEV_NAMESPACE_DOCKER_HUB: ${{ secrets.DEV_NAMESPACE_DOCKER_HUB }}
+      ACTOR_DOCKER_HUB: ${{ secrets.ACTOR_DOCKER_HUB }}
+      RELEASE_DOCKER_HUB: ${{ secrets.RELEASE_DOCKER_HUB }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
