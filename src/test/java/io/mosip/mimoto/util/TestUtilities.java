@@ -179,6 +179,7 @@ public class TestUtilities {
         issuer.setIssuer_id(issuerName + "id");
         issuer.setCredential_issuer(issuerName + "id");
         issuer.setCredential_issuer_host("https://issuer.env.net");
+        issuer.setCredential_issuer_host_external("https://issuer.env.net");
         issuer.setDisplay(Collections.singletonList(display));
         issuer.setClient_id("123");
         issuer.setWellknown_endpoint("/well-known-proxy");
@@ -210,6 +211,7 @@ public class TestUtilities {
         issuer.setProtocol("OpenId4VCI");
         issuer.setWellknown_endpoint("https://issuer.env.net/.well-known/openid-credential-issuer");
         issuer.setCredential_issuer_host("https://issuer.env.net");
+        issuer.setCredential_issuer_host_external("https://issuer.env.net");
         issuer.setToken_endpoint("https://dev/" + issuerName + "id");
         issuer.setAuthorization_audience("https://dev/auth-server/token");
         issuer.setProxy_token_endpoint("https://dev/auth-server/token");
@@ -241,6 +243,7 @@ public class TestUtilities {
         // Handle valid and invalid URLs
         issuer.setWellknown_endpoint(emptyValues ? "" : (invalidUrls ? "ht//issuer.env.net/.well-known/openid-credential-issuer" : "https://issuer.env.net/.well-known/openid-credential-issuer"));
         issuer.setCredential_issuer_host(emptyValues ? "" : (invalidUrls ? "https//issuer.env.net" : "https://issuer.env.net"));
+        issuer.setCredential_issuer_host_external(emptyValues ? "" : (invalidUrls ? "https//issuer.env.net" : "https://issuer.env.net"));
         issuer.setToken_endpoint(emptyValues ? "" : (invalidUrls ? "h://dev/token" : "https://dev/token"));
         issuer.setAuthorization_audience(emptyValues ? "" : (invalidUrls ? "htt://dev/auth-server/token" : "https://dev/auth-server/token"));
         issuer.setProxy_token_endpoint(emptyValues ? "" : (invalidUrls ? "htp://dev/auth-server/token" : "https://dev/auth-server/token"));
